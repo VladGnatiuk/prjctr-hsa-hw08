@@ -1,0 +1,18 @@
+docker-compose up --build
+docker-compose exec test sh /scripts/test_web-proxy.sh
+docker-compose exec test sh /scripts/purge_image1.sh
+
+docker-compose exec test sh /scripts/test_web.sh
+---
+
+docker-compose down
+
+find . -type f \( -name "*.sh" -o -name "*.conf" -o -name "*.yml" \) -exec dos2unix {} \;
+
+docker compose exec web-proxy nginx -s reload
+
+docker compose exec web-proxy apt-get update && docker compose exec web-proxy apt-get install -y tree
+docker compose exec web-proxy tree /tmp/nginx_cache
+docker compose exec web-proxy bash -c "rm -rf /tmp/nginx_cache && nginx -s reload"
+---
+

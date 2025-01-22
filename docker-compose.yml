@@ -1,37 +1,52 @@
 services:
-  web:
-    image: nginx:alpine
-    container_name: web
-    volumes:
-      - ./web/images:/usr/share/nginx/html/images:ro
-      - ./web/conf.d:/etc/nginx/conf.d:ro
-      - ./web/nginx.conf:/etc/nginx/nginx.conf:ro
-    expose:
-      - "80"
-    networks:
-      - network1
-
-  web-proxy:
-    build:
-      context: ./web-proxy
-    container_name: web-proxy
-    volumes:
-      - ./web-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./web-proxy/conf.d:/etc/nginx/conf.d:ro
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: unless-stopped
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=256M
+      --innodb-log-buffer-size=32M
+      --max-connections=200
+      --innodb-flush-log-at-trx-commit=0
+      --max-allowed-packet=1024M
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "80:80"
-    networks:
-      - network1
-    depends_on:
-      - web
-
-  test:
-    build: 
-      context: ./tests
+      - "3306:3306"
     volumes:
-      - ./tests/scripts:/scripts
-    networks:
-      - network1
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+      - mysql_data:/var/lib/mysql
 
-networks:
-  network1:
+  fastapi:
+    build: 
+      context: ./myapi
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    restart: unless-stopped
+
+  load-test:
+    build:
+      context: ./load-test
+      dockerfile: Dockerfile
+    volumes:
+      - ./scripts:/tests:ro
+    depends_on:
+      - fastapi
+
+volumes:
+  mysql_data:

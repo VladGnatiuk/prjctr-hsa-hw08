@@ -1,0 +1,1 @@
+CREATE INDEX idx_date_of_birth USING HASH ON app_users(date_of_birth); 

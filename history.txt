@@ -1,18 +1,24 @@
+csc GenerateData.cs
+.\GenerateData.exe
+
+or
+
+python scripts/generate_sql_40m.py
+---
+find . -type f \( -name "*.sh" -o -name "*.conf" -o -name "*.sql" \) -exec dos2unix {} \;
+---
 docker-compose up --build
-docker-compose exec test sh /scripts/test_web-proxy.sh
-docker-compose exec test sh /scripts/purge_image1.sh
-
-docker-compose exec test sh /scripts/test_web.sh
----
-
 docker-compose down
-
-find . -type f \( -name "*.sh" -o -name "*.conf" -o -name "*.yml" \) -exec dos2unix {} \;
-
-docker compose exec web-proxy nginx -s reload
-
-docker compose exec web-proxy apt-get update && docker compose exec web-proxy apt-get install -y tree
-docker compose exec web-proxy tree /tmp/nginx_cache
-docker compose exec web-proxy bash -c "rm -rf /tmp/nginx_cache && nginx -s reload"
+docker-compose down -v
+---
+SET GLOBAL innodb_flush_log_at_trx_commit = 0;
+SET GLOBAL innodb_flush_log_at_trx_commit = 1;
+SET GLOBAL innodb_flush_log_at_trx_commit = 2;
+---
+docker-compose exec load-test bash /tests/load_test.sh
 ---
 
+
+export $(cat .env | xargs)
+--- didn't work ---
+docker exec -i mysql_db mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < ./scripts/db_remove_index.sql

@@ -1,4 +1,13 @@
 # HW 08. InnoDB Indexes
+## Initial setup
+- To prepare 40m dataset run `GenerateData.exe`
+- Copy .env.example to .env and put meaningful values
+- Bring up containers `docker-compose up --build`
+    - Turn down with data being persisted `docker-compose down`
+    - Turn down with data being destroyed `docker-compose down -v`
+- innodb_flush_log_at_trx_commit is defined in `docker-compose.yml`
+- Query testing is performed from DB IDE
+- Write testing is performed from command line as `docker-compose exec load-test bash /tests/load_test.sh`
 
 ## Compare performance of selection queries
 

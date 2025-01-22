@@ -1,9 +1,5 @@
 csc GenerateData.cs
 .\GenerateData.exe
-
-or
-
-python scripts/generate_sql_40m.py
 ---
 find . -type f \( -name "*.sh" -o -name "*.conf" -o -name "*.sql" \) -exec dos2unix {} \;
 ---
